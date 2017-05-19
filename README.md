@@ -5,8 +5,8 @@ out in the repl and making unit tests to make sure they keep working.
 
 ## Usage
 
-Use the poirot.repl/dump to stash data in a file, and poirot.test/restore-file
-(or restore-resource) to access that data from a unit test.
+Use poirot/dump to stash data in a file, and poirot/restore to access that data
+from a unit test.
 
 ## License
 
