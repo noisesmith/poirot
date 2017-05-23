@@ -1,4 +1,4 @@
-(defproject org.noisesmith.poirot "0.1.0"
+(defproject org.noisesmith/poirot "0.1.0"
   :description "repl helper to put your runtime data into unit tests;
                 test helper to use data from your repl"
   :url "https://github.com/noisesmith/poirot"
