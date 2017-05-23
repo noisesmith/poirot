@@ -33,6 +33,12 @@
   {PersistentQueue (transit/write-handler "queue" (fn [q] (into [] q)))})
 
 (defn dump
+  "dumps some data to disk so that it can be restored later
+   returns the path to the file it creates
+
+   data - some writeable to be stored
+   doc - base name for the file to create (can be auto-generated)
+   opts - {:dir \"location for file\" :transit \"transit opts\"}"
   ([data]
    (dump data (auto-file-name data)))
   ([data doc]
@@ -51,6 +57,11 @@
      (str dir "/" doc-name))))
 
 (defn restore
+  "restores data from disk
+   returns the data
+
+   source - full path to input file
+   transit-opts - opts for transit decoding (eg. :handlers)"
   ([source] (restore source {}))
   ([source transit-opts]
    (let [transit-opts (update transit-opts :handlers
