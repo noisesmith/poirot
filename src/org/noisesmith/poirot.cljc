@@ -1,30 +1,56 @@
 (ns org.noisesmith.poirot
   (:require [org.noisesmith.poirot.handlers :as handlers]
             [cognitect.transit :as transit]
+            [clojure.string :as string]
             #?@(:clj [[environ.core :as env]
-                      [clojure.java.io :as io]
-                      [clojure.string :as string]]))
+                      [clojure.java.io :as io]]))
   #?(:clj (:import (java.text SimpleDateFormat)
                    (java.util Date))))
 
-(defn- timestamp
+(defn timestamp
   []
   #?(:clj (.format (SimpleDateFormat. "yyyy-MM-dd-HH-mm-ss")
-                   (Date.))))
+                   (Date.))
+     :cljs (.toISOString (js/Date.))))
 
-(defn- auto-file-name
+(defn auto-file-name
   [data]
-  #?(:clj (str (string/replace (type data)
-                               #"[/\s]" "-")
-               "-"
-               (timestamp))))
+  (str (string/replace (pr-str (type data))
+                       #"[/\s]"
+                       "-")
+       "-"
+       (timestamp)))
 
 (def data-path #?(:clj "POIROT_DATA_PATH"))
 
-(defn- file-path
+(defn file-path
   []
   #?(:clj (or (System/getProperty data-path)
               (env/env :poirot-data-path "./test/data"))))
+
+#?(:cljs
+   (do
+    (defn dump-data
+      [payload content-type]
+      (.createObjectURL js/URL
+                        (js/Blob. #js[payload]
+                                  #js{:type content-type})))
+
+    (defn create-download-link
+      [payload file-name content-type]
+      (let [el (.createElement js/document "a")
+            data-str (dump-data payload content-type)]
+        (.setAttribute el "href" data-str)
+        (.setAttribute el "download" file-name)
+        el))
+
+    (defn dump-to-download
+      [payload file-name content-type]
+      (let [el (create-download-link payload file-name content-type)
+            body (.-body js/document)]
+        (.appendChild body el)
+        (.click el)
+        (.removeChild body el)))))
 
 (defn dump-impl
   [data doc-name dir transit-opts]
@@ -36,15 +62,8 @@
            (transit/write writer data)))
      :cljs
      (let [writer (transit/writer :json transit-opts)
-           payload (transit/write writer data)
-           el (.createElement js/document "a")
-           data-str (js/encodeURIComponent payload)]
-       (.setAttribute el "href" (str "data:text/json," data-str))
-       (.setAttribute el "download" doc-name)
-       (aset (.-style el) "display" "none")
-       (.appendChild (.-body js/document) el)
-       (.click el)
-       (.removeChild (.-body js/document) el))))
+           payload (transit/write writer data)]
+       (dump-to-download payload doc-name "text/json"))))
 
 (defn dump
   "dumps some data to disk so that it can be restored later

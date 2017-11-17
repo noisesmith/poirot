@@ -6,18 +6,18 @@
            (clojure.lang PersistentQueue)))
 
 (test/use-fixtures
- :once
- (fn poirot-fixture
-   [t]
-   (let [old-path (System/getProperty poirot/data-path)
-         self-test-path "/tmp/poirot/self-test"]
-     (System/setProperty poirot/data-path self-test-path)
-     (t)
-     (doseq [to-remove (reverse (file-seq (File. self-test-path)))]
-       (Files/delete (Paths/get (str to-remove) (into-array String []))))
-     (if old-path
-       (System/setProperty poirot/data-path old-path)
-       (System/clearProperty poirot/data-path)))))
+  :once
+  (fn poirot-fixture
+    [t]
+    (let [old-path (System/getProperty poirot/data-path)
+          self-test-path "/tmp/poirot/self-test"]
+      (System/setProperty poirot/data-path self-test-path)
+      (t)
+      (doseq [to-remove (reverse (file-seq (File. self-test-path)))]
+        (Files/delete (Paths/get (str to-remove) (into-array String []))))
+      (if old-path
+        (System/setProperty poirot/data-path old-path)
+        (System/clearProperty poirot/data-path)))))
 
 (deftest round-trip-test
   (let [payload {:a 0 :b 1}
