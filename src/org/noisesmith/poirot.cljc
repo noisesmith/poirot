@@ -56,10 +56,9 @@
   [data doc-name dir transit-opts]
   #?(:clj
      (do (.mkdirs (io/file dir))
-         (let [writer (-> (io/file dir doc-name)
-                          (io/output-stream)
-                          (transit/writer :json transit-opts))]
-           (transit/write writer data)))
+         (with-open [stream (io/output-stream (io/file dir doc-name))]
+           (let [writer (transit/writer stream :json transit-opts)]
+             (transit/write writer data))))
      :cljs
      (let [writer (transit/writer :json transit-opts)
            payload (transit/write writer data)]
